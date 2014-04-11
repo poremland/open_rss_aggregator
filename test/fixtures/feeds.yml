@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  update_feed_items: MyString
+  get_displayable_feed_items: MyString
+
+two:
+  update_feed_items: MyString
+  get_displayable_feed_items: MyString

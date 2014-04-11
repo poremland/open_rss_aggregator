@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feeds>
+  <% @feeds.each do |feed| -%>
+    <feed>
+      <count><%=feed.count-%></count>
+      <name><%=h(feed.name)-%></name>
+      <uri><%=h(feed.uri)-%></uri>
+      <id><%=feed.id-%></id>
+    </feed>
+  <%end-%>
+</feeds>

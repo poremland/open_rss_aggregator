@@ -1,0 +1,5 @@
+# Reinitialize the production database (WILL DELETE ALL USER DATA)
+rake RAILS_ENV='production' RAILS_RELATIVE_URL_ROOT='/rss' db:drop db:create db:migrate db:setup
+
+# Precompile production assets
+rake RAILS_ENV='production' RAILS_RELATIVE_URL_ROOT='/rss' assets:precompile

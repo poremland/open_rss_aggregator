@@ -1,0 +1,11 @@
+development:
+  mail_server: "your.domain.com"
+  mail_server_port: 587
+  mail_server_enable_tls: true
+  mail_domain: "domain.com"
+
+production:
+  mail_server: "your.domain.com"
+  mail_server_port: 587
+  mail_server_enable_tls: true
+  mail_domain: "domain.com"
