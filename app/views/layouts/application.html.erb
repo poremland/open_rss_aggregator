@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title><%=APP_CONFIG["mail_domain"]%> RSS Reader</title>
+	<%= stylesheet_link_tag 'application.css' %> 
+    <%=javascript_include_tag "jquery-1.5.min" %>
+    <%=javascript_include_tag "jquery-ui-1.7.2.custom.min" %>
+    <%=javascript_include_tag "jquery.corner" %>
+    <%=javascript_include_tag "application" %>
+		<%=javascript_include_tag "feed_list" %>
+		<%=javascript_include_tag "feed_item_display" %>
+    <script type="text/javascript">
+      var baseUrl = "<%=url_for(:controller => :feeds).gsub("\/feeds","").gsub("\/index","")%>";
+    </script>
+	<%= csrf_meta_tag %>
+  </head>
+	<body>
+		<div id="navigation" name="navigation" class="navigation">
+			<button id="addFeedButton" name="addFeedButton" class="button">Add Feed</button>
+			<button id="refreshButton" name="refreshButton" class="button">Refresh</button>
+			<button id="logoutButton" name="logoutButton" class="button">Logout</button>
+			<div id="sync_status" class="syncStatus"></div>
+		</div>
+		<div id="FeedListContent" class="FeedListContent"></div>
+		<div id="LightBoxContent" class="LightBoxContent"></div>
+		<div id="content"><%= content_for?(:content) ? yield(:content) : yield %></div>
+	</body>
+	<script type="text/javascript">
+    var application = new Application(baseUrl);
+		var feedList = new FeedList(baseUrl, "<%=session["user_id"]%>", $("#FeedListContent"));
+		var feedItemDisplay = new FeedItemDisplay(baseUrl, $("#LightBoxContent"), $("#FeedListContent"));
+
+    application.Initialize();
+		application.AddButtonEvents();
+		feedList.AddDisplayHandler(function(feed) { feedItemDisplay.DisplayFeedItem(feed); });
+		feedItemDisplay.AddMarkAsReadHandler(function(feedId, feedItemId) { feedList.FeedMarkedAsRead(feedId, feedItemId); });
+		feedList.GetFeeds();
+
+		/* var timerId = setInterval(function() {  }, 60000); */
+  </script>
+</html>
