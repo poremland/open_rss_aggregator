@@ -34,15 +34,15 @@
 
 	$ bundle install
 
+### Authentication
+Copy the `config/config.yml.example`  to `config/config.yml` and enter credentials for your domains SMTP server.
+
 ### Database
 Copy the `config/database.yml.example`  to `config/database.yml` and enter credentials for your local database.
 
 > Setup the database
 
 	$ rake db:create db:migrate db:seed
-
-### Authentication
-Copy the `config/config.yml.example`  to `config/config.yml` and enter credentials for your domains SMTP server.
 
 ## Development
 
