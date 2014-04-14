@@ -6,6 +6,10 @@
 
 > I built this several years ago as a means to learn Ruby. While I've maintained it over the years, the code could use a little refactoring love. Because I built it with a RESTFul API it's actually been extemely useful in learning new langauges and platforms as it gives me something *to program against* which is fun and useful.  I've built native webOS and Android clients for it.
 
+## Contributing
+
+> See the [TODO.md](TODO.md) for how you can help contribute to this project.
+
 ## Setup
 
 ### OS X Specific
