@@ -1,42 +1,40 @@
 class FeedsController < ApplicationController
-	protect_from_forgery :except => [:create, :mark_items_as_read] 
+	include JwtAuthenticatable
 
 	def index
-		respond_to do |format|
-			format.html { redirect_to(:controller => "application") }
-			format.xml	{ head :ok }
-		end
+		head :ok
 	end
 
 	def all
-		@feeds = Feed.find(:all, :conditions => { 'user' => session["user_id"] }, :order => "name ASC")
-
-		respond_to do |format|
-			format.xml	{ render :xml => @feeds }
-			format.json { render :json => @feeds.to_json }
+		@feeds = Feed.where(user: @logged_in_user).order("name ASC")
+		if request.format.json?
+			render json: @feeds
+		else
+			render xml: @feeds
 		end
 	end
 
 	def tree
 		@feeds = Feed.joins(:feed_items)
-					.select('feeds.id as id, feeds.name as name, feeds.uri as uri, count(feed_items.id) as count')
-					.group('feeds.id')
-					.where({ 'feed_items.display' => true, 'user' => session["user_id"] })
-					.order('name ASC')
-		respond_to do |format|
-			format.xml
-			format.json { render :json => get_json_tree(@feeds) }
+								 .select('feeds.id as id, feeds.name as name, feeds.uri as uri, count(feed_items.id) as count')
+								 .group('feeds.id')
+								 .where({ 'feed_items.display' => true, 'user' => @logged_in_user })
+								 .order('name ASC')
+		if request.format.json?
+			render json: get_json_tree(@feeds)
+		else
+			render xml: get_xml_tree(@feeds)
 		end
 	end
 
 	def get_json_tree(feeds)
 		feeds.collect { |feed|
 			{
-				:feed => {
-					:count => feed.count,
-					:name => feed.name,
-					:id => feed.id,
-					:uri => feed.uri
+				feed: {
+					count: feed.count,
+					name: feed.name,
+					id: feed.id,
+					uri: feed.uri
 				}
 			}
 		}
@@ -44,11 +42,11 @@ class FeedsController < ApplicationController
 
 	def show
 		feed = Feed.find(params[:id])
-		@feed_items = feed.feed_items
-
-		respond_to do |format|
-			format.xml	{ render :xml => @feed_items }
-			format.json { render :json => @feed_items.to_json }
+		@feed_items = feed.feed_items.where(display: true)
+		if request.format.json?
+			render json: @feed_items
+		else
+			render xml: @feed_items
 		end
 	end
 
@@ -57,100 +55,88 @@ class FeedsController < ApplicationController
 		feed.update_feed_items
 		@count = feed.feed_items.count
 		@id = feed.id
- 
-		respond_to do |format|
-			format.xml
-			format.json { render :json => { :count => @count, :id => @id } }
+		if request.format.json?
+			render json: { count: @count, id: @id }
+		else
+			render xml: { count: @count, id: @id }
 		end
 	end
 
 	def unread_feed_items
-		feed = Feed.find(params[:id], :conditions => { 'user' => session["user_id"] })
+		feed = Feed.joins(:feed_items)
+								 .select('feeds.id as id, count(feed_items.id) as count')
+								 .find(params[:id])
 		@count = feed.feed_items.count
 		@id = feed.id
- 
-		respond_to do |format|
-			format.xml
-			format.json { render :json => { :count => @count, :id => @id } }
+		if request.format.json?
+			render json: { count: @count, id: @id }
+		else
+			render xml: { count: @count, id: @id }
 		end
 	end
 
 	def new
 		@feed = Feed.new
-
-		respond_to do |format|
-			format.html # new.html.erb
-			format.xml	{ render :xml => @feed }
+		if request.format.json?
+			render json: @feed
+		else
+			render xml: @feed
 		end
 	end
 
 	def edit
-		respond_to do |format|
-			format.html { redirect_to(:controller => "application") }
-			format.xml	{ head :ok }
-		end
+		head :ok
 	end
 
 	def create
-		@feed = Feed.new
-		@feed.uri = params[:feed][:uri]
-		@feed.name = params[:feed][:name]
-		@feed.user = params[:feed][:user]
-
-		respond_to do |format|
-			if @feed.save
-				@feed.update_feed_items
-				flash[:notice] = 'Feed was successfully created.'
-				format.html { redirect_to(:controller => "application") }
-				format.xml	{ render :xml => @feed, :status => :created, :location => @feed }
-				format.json { render :json => @feed, :status => :created, :location => @feed }
-			else
-				flash[:notice] = 'Unable to create feed.'
-				format.html { redirect_to(:controller => "application") }
-				format.xml	{ render :xml => @feed.errors, :status => :unprocessable_entity }
-				format.json	{ render :json => @feed.errors, :status => :unprocessable_entity }
-			end
+		@feed = Feed.new(params.require(:feed).permit(:uri, :name, :user))
+		if @feed.save
+			@feed.update_feed_items
+			render json: @feed, status: :created, location: @feed
+		else
+			render json: @feed.errors, status: :unprocessable_entity
 		end
 	end
 
 	def update
-		respond_to do |format|
-			format.html { redirect_to(:controller => "application") }
-			format.xml	{ head :ok }
+		@feed = Feed.find(params[:id])
+		if @feed.update(params.require(:feed).permit(:uri, :name, :user))
+			render json: @feed
+		else
+			render json: @feed.errors, status: :unprocessable_entity
 		end
 	end
 
 	def remove
-		@feed = Feed.find(params[:id], :conditions => { 'user' => session["user_id"] })
-		@feed.destroy
-
-		respond_to do |format|
-			format.html { redirect_to(:controller => "application") }
-			format.xml	{ head :ok }
-		end
+		@feed = Feed.where(id: params[:id], user: @logged_in_user)
+		@feed.destroy_all
+		render json: { id: params[:id], user: @logged_in_user, status: "deleted" }
 	end
 
 	def mark_items_as_read
-		@feed = Feed.find(params[:id], :conditions => { 'user' => session["user_id"] })
-		items = params[:items]
-		#TODO: Figure out how to remove the eval
-		# this is a hack to get around the fact that
-		# the parameters aren't being sent correctly.
-		items = JSON.parse(items) unless items.kind_of?(Array) or items.nil?
-		item_ids = "id=#{items.join(" or id=")}"
-		FeedItem.where(item_ids).update_all(:display => false) if not items.nil?
+		@feed = Feed.find_by(id: params[:id], user: @logged_in_user)
+		if @feed
+			items = params[:items]
+			items = JSON.parse(items) unless items.kind_of?(Array) || items.nil?
+			item_ids = "id IN (#{items.join(',')})" if items.present?
+			FeedItem.where(item_ids).update_all(display: false) if item_ids.present?
 
-		@feed.reload
-		@count = @feed.feed_items.count
-		@id = @feed.id
+			@feed.reload
+			@count = @feed.feed_items.count
+			@id = @feed.id
 
-		respond_to do |format|
-			format.xml
-			format.json { render :json => { :count => @count, :id => @id } }
+			if request.format.json?
+				render json: { count: @count, id: @id }
+			else
+				render xml: { count: @count, id: @id }
+			end
+		else
+			render json: { error: 'Feed not found' }, status: :not_found
 		end
 	end
 
 	protected
+
 	def secure?
 		true
 	end

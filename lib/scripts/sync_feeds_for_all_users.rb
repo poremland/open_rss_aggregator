@@ -6,7 +6,7 @@ class SyncFeedsForAllUsers < ActiveRecord::Base
 	start_time = Time.now
 	puts Time.now
 
-	Parallel.map(feeds) do |feed|
+	Parallel.each(feeds) do |feed|
 		::ActiveRecord::Base.establish_connection
 		begin
 			old_unread = feed.feed_items.size
@@ -14,7 +14,7 @@ class SyncFeedsForAllUsers < ActiveRecord::Base
 			new_unread = feed.feed_items.size - old_unread
 			puts "#{new_unread} new feed items in #{feed.name} for #{feed.user}"
 		rescue => e
-			puts "Error updating feed #{feed.name} for #{feed.user}: #{e}"
+                  puts "Error updating feed #{feed.id} #{feed.name} for #{feed.user}: #{e}"
 		end
 	end
 	end_time = Time.now

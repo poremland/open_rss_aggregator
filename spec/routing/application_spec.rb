@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe ApplicationController do
+describe ApplicationController, type: :routing do
 	describe "routing" do
 		it "routes to #index" do
-			{ :get => "/" }.should route_to(
+			expect(:get => "/").to route_to(
 				:controller => "application",
 				:action => "index"
 			)

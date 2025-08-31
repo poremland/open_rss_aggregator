@@ -1,34 +1,26 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.11'
-
-# Bundle edge Rails instead:
-# gem 'rails', :git => 'git://github.com/rails/rails.git'
+gem 'rails', '8.0.2.1'
 
 gem 'sqlite3'
 gem 'mysql2'
 gem 'parallel'
+gem 'nokogiri'
+gem 'jwt'
+gem 'rack-cors'
+gem 'json', '~> 2.5'
+gem 'puma'
 
-# Gems used only for assets and not required
-# in production environments by default.
-group :assets do
-  gem 'sass-rails',   '~> 3.2.3'
-  gem 'coffee-rails', '~> 3.2.1'
 
-  # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-  # gem 'therubyracer', :platforms => :ruby
+gem 'net-smtp'
+gem 'concurrent-ruby'
+gem 'feedjira'
+gem 'httparty'
 
-  gem 'uglifier', '>= 1.0.3'
-end
-
-gem 'jquery-rails'
-gem "feedzirra", "~> 0.2.0.rc2"
-gem 'tlsmail'
-
-group :development do
+group :test do
 	gem 'rspec-rails'
-	gem 'simplecov'
-	gem 'simplecov-rcov'
+	gem 'timecop'
 	gem 'spork'
-	gem 'watchr'
+	gem 'shoulda-matchers'
+	gem 'factory_bot_rails'
 end

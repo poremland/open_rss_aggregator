@@ -1,94 +1,114 @@
 # Open Rss Aggregator
 
-> Open Rss Aggregator is a Ruby on Rails application created to provide rss aggregation services. The Open Rss Aggregator was built to be simple and to integrate within an existing domain. Practically what this means is that there are no users to manage. Instead Open Rss Aggregator ties into your existing domain infrastructure and validates users using SMTP authentication. This allows anyone on your domain to have access to their own set of aggregated RSS feeds without putting the burden of user management on the domain administrator.
+> Open Rss Aggregator is a Ruby on Rails API-first application designed for RSS feed aggregation. It provides a RESTful API for managing and accessing RSS feeds and their items. This project has been updated to leverage modern Ruby on Rails practices, including JWT-based authentication with One-Time Passwords (OTP) for secure access.
 
-> Open Rss Aggregator provides a simple RESTFul API for use with automation and 3rd party application integration.
-
-> I built this several years ago as a means to learn Ruby. While I've maintained it over the years, the code could use a little refactoring love. Because I built it with a RESTFul API it's actually been extemely useful in learning new langauges and platforms as it gives me something *to program against* which is fun and useful.  I've built native webOS and Android clients for it.
-
-## Contributing
-
-> See the [TODO.md](TODO.md) for how you can help contribute to this project.
+> The application is built to be self-contained and API-driven. Authentication is handled via JWT tokens issued after successful OTP verification, which are sent to the user's registered email address.
 
 ## Setup
 
-### OS X Specific
-> Install [Homebrew](https://github.com/mxcl/homebrew/wiki/installation)
-> Install [mysql](http://dev.mysql.com/doc/refman/5.5/en/) using homebrew. 5.5 works
+### Prerequisites
 
-### *nix
-> Install [mysql](http://dev.mysql.com/doc/refman/5.5/en/)
+*   **Ruby**: Version 3.4.4 (recommended to use [RVM](https://rvm.io/) or [rbenv](https://github.com/rbenv/rbenv))
+*   **Bundler**: Gem manager for Ruby.
+*   **Database**: MySQL (recommended) or SQLite3 (for development/testing).
+*   **Mail Server**: An SMTP server for sending OTP emails.
 
-### Everyone
-> Install [RVM](https://rvm.io/) if you don't have it already.
+### Installation
 
-> Install [httpd](http://httpd.apache.org)
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/poremland/open_rss_aggregator.git
+    cd open_rss_aggregator
+    ```
 
-> Install [Phusion Passenger](http://www.modrails.com/documentation/Users%20guide%20Apache.html) for Apache.
+2.  **Install Ruby dependencies**:
+    ```bash
+    bundle install
+    ```
 
-> Checkout the code
+3.  **Configure the application**:
+    Copy the example configuration files:
+    ```bash
+    cp config/config.yml.example config/config.yml
+    cp config/database.yml.example config/database.yml
+    cp config/storage.yml.example config/storage.yml
+    ```
+    Edit `config/config.yml` and `config/database.yml` with your specific settings:
+    *   **`config/config.yml`**:
+        *   `mail_server`, `mail_server_port`, `mail_server_enable_tls`, `mail_domain`, `mail_user`, `mail_password`: Configure your SMTP server details for sending OTP emails.
+    *   **`config/database.yml`**: Configure your database connection details (e.g., MySQL credentials).
 
-	$ cd /path/to/httpd/htdocs
+4.  **Setup the database**:
+    ```bash
+    rake db:create db:migrate db:seed
+    ```
 
-	$ git clone git@github.com:poremland/open_rss_aggregator.git
+## Running the Application
 
-	$ cd open_rss_aggregator
+The application uses [Puma](https://puma.io/) as its web server.
 
-	$ gem install bundle
+To start the Puma server in production mode (recommended for deployment):
 
-	$ bundle install
+```bash
+bundle exec puma -C config/puma.rb
+```
 
-### Authentication
-Copy the `config/config.yml.example`  to `config/config.yml` and enter credentials for your domains SMTP server.
+Alternatively, you can use the provided worker script which also manages the Puma process:
 
-### Database
-Copy the `config/database.yml.example`  to `config/database.yml` and enter credentials for your local database.
+```bash
+./lib/scripts/open.rss.aggregator.worker.sh start
+```
 
-> Setup the database
+The application will typically run on port `8778` (configurable in `config/puma.rb`).
 
-	$ rake db:create db:migrate db:seed
+## Updating Server URL in Frontend Assets
 
-## Development
+This project has a React frontend assets (located in `public/_expo/static/js/web/`) and will need the JavaScript files to be updated to point to your API server URL. This can be done using the provided Python script: `lib/scripts/update_server_in_js_files.py`.
 
-### After changing assets
+This script uses `sed` to perform a find-and-replace operation on all `.js` files within a specified directory.
 
-	$ RAILS_ENV=development bundle exec rake clean assets:clean assets:precompile
+**Usage:**
 
-## Running
+```bash
+python3 lib/scripts/update_server_in_js_files.py public/_expo/static/js/web/ "s/https:\/\/YOUR.DOMAIN.COM/https:\/\/EXAMPLE.DOMAIN.COM/g"
+```
 
-> I'm a fan of running my rails apps on [Apache](http://www.apache.org) through [Phusion Passenger](http://www.modrails.com/documentation/Users%20guide%20Apache.html) but there's no reason this shouldn't work with another HTTP server. To setup on Apache with Phusion Passenger you need to edit your httpd.conf file and set your passenger specific variables.  For example:
+**Explanation:**
 
-	PassengerRoot /usr/local/rvm/gems/ruby-1.9.2-p320/gems/passenger-3.0.17
+*   `python3 lib/scripts/update_server_in_js_files.py`: Executes the Python script.
+*   `public/_expo/static/js/web/`: This is the target directory where the JavaScript files to be updated are located.
+*   `"s/https:\/\/YOUR.DOMAIN.COM/https:\/\/EXAMPLE.DOMAIN.COM/g"`: This is the `sed` expression.
 
-	PassengerRuby /usr/local/rvm/wrappers/ruby-1.9.2-p320/ruby
+**Important:**
 
-	PassengerMaxPoolSize 15
-
-	PassengerPoolIdleTime 900
-
-	PassengerHighPerformance on
-
-	PassengerSpawnMethod smart
-
-	PassengerMaxInstancesPerApp 3
+*   Replace `https://EXAMPLE.DOMAIN.COM` with the correct URL of your backend server.
 
 
-> Then set the Rack Base URI to the name of the directory under apache's htdocs folder where you checked out the source
+## Authentication
 
-	RackbaseURI /open_rss_aggregator
+Open Rss Aggregator now uses a JWT (JSON Web Token) based authentication system with OTP (One-Time Password) verification.
 
-> You should now be able to visit [http://localhost/open_rss_aggregator](http://localhost/open_rss_aggregator) to see your login screen.
+1.  **Request OTP**: Send a request to `/api/request_otp` with your username (email address). The system will send an OTP to that email.
+2.  **Login with OTP**: Send a request to `/api/login` with your username and the received OTP. If successful, the API will return a JWT token.
+3.  **Access Protected Endpoints**: Include the JWT token in the `Authorization` header of your subsequent API requests (e.g., `Authorization: Bearer YOUR_JWT_TOKEN`).
+4.  **Refresh Token**: You can refresh your JWT token by sending a request to `/api/refresh_token` with your current token.
 
 ## Scheduled Tasks
-> There is a bash script, `lib/scripts/open.rss.aggregator.worker.sh`, which has been created that can be run as a cron job to allow syncing and purging of feeds for all users. You'll need to update the script and replace `/YOUR/PATH/TO/open-rss-aggregator` with the actual full path.
 
-### Sync'ing feeds
-> Add the following to your crontab
+The `lib/scripts/open.rss.aggregator.worker.sh` bash script can be used for scheduled tasks like syncing feeds and purging old feed items. You will need to update the script to replace `/YOUR/PATH/TO/open-rss-aggregator` with the actual full path to your application directory.
 
-	*/30 * * * * /YOUR/PATH/TO/open-rss-aggregator/lib/scripts/open.rss.aggregator.worker.sh "sync"
+### Syncing Feeds
+
+This command syncs all RSS feeds for all users. It should be run periodically (e.g., every 30 minutes).
+
+```bash
+*/30 * * * * /YOUR/PATH/TO/open-rss-aggregator/lib/scripts/open.rss.aggregator.worker.sh sync
+```
 
 ### Purging Old Feeds
-> Add the following to your crontab
 
-	13 11 * * * /YOUR/PATH/TO/ruby/open-rss-aggregator/lib/scripts/open.rss.aggregator.worker.sh "purge"
+This command purges old feed items from the database. It should be run less frequently (e.g., daily).
 
+```bash
+13 11 * * * /YOUR/PATH/TO/open-rss-aggregator/lib/scripts/open.rss.aggregator.worker.sh purge
+```
