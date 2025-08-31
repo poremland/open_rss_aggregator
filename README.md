@@ -112,3 +112,7 @@ This command purges old feed items from the database. It should be run less freq
 ```bash
 13 11 * * * /YOUR/PATH/TO/open-rss-aggregator/lib/scripts/open.rss.aggregator.worker.sh purge
 ```
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0. See the [LICENSE](LICENSE) file for details.
