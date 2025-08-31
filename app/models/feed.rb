@@ -33,6 +33,8 @@ class Feed < ApplicationRecord
 			return
 		end
 
+		base_uri = URI.parse(self.uri) # Use the feed's own URI as the base
+
 		rss.entries.each do |item|
 			begin
 				date = get_date(item)
@@ -42,9 +44,20 @@ class Feed < ApplicationRecord
 				count += FeedItem.where(title: item.title, feed_id: self.id).count
 				next unless count == 0
 
+				# Resolve relative URLs
+				resolved_url = item.url
+				if resolved_url && !resolved_url.start_with?('http://', 'https://')
+					begin
+						resolved_url = base_uri.merge(item.url).to_s
+					rescue URI::InvalidURIError => e
+						puts "Warning: Could not resolve relative URL '#{item.url}' with base '#{base_uri}'. Error: #{e.message}"
+						resolved_url = item.url # Fallback to original if resolution fails
+					end
+				end
+
 				if(date && date != "" && Date.parse(date) > (Date.today - 30))
                                   begin
-					self.feed_items << create_feed_item(item, item.url, item.url, hash_key, date)
+					self.feed_items << create_feed_item(item, resolved_url, resolved_url, hash_key, date)
                                   rescue => e
                                     puts "Error adding feed item for feed #{self.id} error message: #{e.message}"
                                   end

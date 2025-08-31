@@ -279,7 +279,6 @@ RSpec.describe Feed, type: :model do
         allow(HTTParty).to receive(:get).and_return(httparty_response)
         allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
         allow(feedjira_feed).to receive(:entries).and_return([feedjira_entry1])
-        allow(FeedItem).to receive(:where).and_return(double(count: 0))
       end
 
       it 'creates new feed items' do
@@ -299,6 +298,50 @@ RSpec.describe Feed, type: :model do
       it 'does not create feed items and logs an error' do
         expect { feed.update_feed_items }.not_to change(FeedItem, :count)
         expect(feed).to have_received(:puts).with(/Error updating feed items for feed: .*Failed to open connection/)
+      end
+    end
+
+    context 'when feed items have relative URLs' do
+      let(:feed_with_relative_uri) { FactoryBot.create(:feed, uri: 'http://example.com/blog/feed.xml') }
+      let(:relative_entry) { double('Feedjira::Entry', title: "Relative Item", summary: "Relative Description", url: "/blog/relative-item", published: Date.today.to_time, image: nil, content: nil) }
+      let(:absolute_entry) { double('Feedjira::Entry', title: "Absolute Item", summary: "Absolute Description", url: "http://external.com/absolute-item", published: Date.today.to_time, image: nil, content: nil) }
+
+      before do
+        FeedItem.delete_all # Clean up before each test
+        allow(HTTParty).to receive(:get).and_return(double(body: '<xml>'))
+        allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
+        allow(feedjira_feed).to receive(:entries).and_return([relative_entry, absolute_entry])
+        allow(FeedItem).to receive(:where).and_call_original # Unmock where for these tests
+      end
+
+      it 'resolves relative URLs to absolute URLs' do
+        feed_with_relative_uri.update_feed_items
+        new_feed_item = FeedItem.find_by(title: "Relative Item")
+        expect(new_feed_item.link).to eq("http://example.com/blog/relative-item")
+      end
+
+      it 'does not change absolute URLs' do
+        feed_with_relative_uri.update_feed_items
+        new_feed_item = FeedItem.find_by(title: "Absolute Item")
+        expect(new_feed_item.link).to eq("http://external.com/absolute-item")
+      end
+
+      context 'when a relative URL is invalid' do
+        let(:invalid_relative_entry) { double('Feedjira::Entry', title: "Invalid Relative Item", summary: "Invalid Description", url: "://invalid-item", published: Date.today.to_time, image: nil, content: nil) }
+
+        before do
+          FeedItem.delete_all # Clean up before each test
+          allow(feedjira_feed).to receive(:entries).and_return([invalid_relative_entry])
+          allow(feed_with_relative_uri).to receive(:puts) # Suppress puts output during test
+          allow(FeedItem).to receive(:where).and_call_original # Unmock where for these tests
+        end
+
+        it 'falls back to the original invalid URL and logs a warning' do
+          feed_with_relative_uri.update_feed_items
+          new_feed_item = FeedItem.find_by(title: "Invalid Relative Item")
+          expect(new_feed_item.link).to eq("://invalid-item")
+          expect(feed_with_relative_uri).to have_received(:puts).with(/Warning: Could not resolve relative URL ':\/\/invalid-item' with base 'http:\/\/example.com\/blog\/feed.xml'. Error: bad URI/)
+        end
       end
     end
   end
