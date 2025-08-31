@@ -1,81 +1,80 @@
 require 'spec_helper'
 
-describe FeedsController do
+describe FeedsController, type: :routing do
 	describe "routing" do
 		it "routes to #index" do
-			{ :get => "/feeds/index" }.should route_to(
+			expect(:get => "/feeds").to route_to(
 				:controller => "feeds",
 				:action => "index"
 			)
 		end
 
 		it "routes to #all" do
-			{ :get => "/feeds/all" }.should route_to(
+			expect(:get => "/feeds/all").to route_to(
 				:controller => "feeds",
 				:action => "all"
 			)
 		end
 
 		it "routes to #tree" do
-			{ :get => "/feeds/tree" }.should route_to(
+			expect(:get => "/feeds/tree").to route_to(
 				:controller => "feeds",
 				:action => "tree"
 			)
 		end
 
 		it "routes to #show" do
-			{ :get => "/feeds/show" }.should route_to(
+			expect(:get => "/feeds/1").to route_to(
 				:controller => "feeds",
-				:action => "show"
+				:action => "show",
+				:id => "1"
 			)
 		end
 
 		it "routes to #sync" do
-			{ :get => "/feeds/sync" }.should route_to(
+			expect(:get => "/feeds/sync/1").to route_to(
 				:controller => "feeds",
-				:action => "sync"
+				:action => "sync",
+				:id => "1"
 			)
 		end
 
 		it "routes to #unread_feed_items" do
-			{ :get => "/feeds/unread_feed_items" }.should route_to(
+			expect(:get => "/feeds/unread_feed_items/1").to route_to(
 				:controller => "feeds",
-				:action => "unread_feed_items"
-			)
-		end
-
-		it "routes to #edit" do
-			{ :get => "/feeds/edit" }.should route_to(
-				:controller => "feeds",
-				:action => "edit"
+				:action => "unread_feed_items",
+				:id => "1"
 			)
 		end
 
 		it "routes to #create" do
-			{ :get => "/feeds/create" }.should route_to(
+			expect(:post => "/feeds").to route_to(
 				:controller => "feeds",
 				:action => "create"
 			)
 		end
 
 		it "routes to #update" do
-			{ :get => "/feeds/update" }.should route_to(
+			expect(:put => "/feeds/1").to route_to(
 				:controller => "feeds",
-				:action => "update"
+				:action => "update",
+				:id => "1"
 			)
 		end
 
 		it "routes to #remove" do
-			{ :get => "/feeds/remove" }.should route_to(
+			expect(:get => "/feeds/remove/1").to route_to(
 				:controller => "feeds",
-				:action => "remove"
+				:action => "remove",
+				:id => "1"
 			)
 		end
 
 		it "routes to #mark_items_as_read" do
-			{ :get => "/feeds/mark_items_as_read" }.should route_to(
+			expect(:post => "/feeds/mark_items_as_read/1").to route_to(
 				:controller => "feeds",
-				:action => "mark_items_as_read"
+				:action => "mark_items_as_read",
+				:id => "1"
 			)
 		end
 	end

@@ -1,34 +1,22 @@
-class ApplicationController < ActionController::Base
-	helper :all # include all helpers, all the time
-	protect_from_forgery
+class ApplicationController < ActionController::API
+	include JwtAuthenticatable # Include your JWT authentication concern
 
-	before_filter :authorize
+	attr_reader :current_user # Make the authenticated user accessible in controllers
 
 	def index
-		if session["user_id"].nil?
-			session["return_to"] = "#{request.protocol}#{request.host_with_port}#{request.fullpath}"
-			redirect_to :controller => "login", :action => "login"
-			return false
-		end
-
-		respond_to do |format|
-			format.html # index.html.erb
-			format.xml	{ render :xml => @feeds }
+		if request.format.json?
+			render json: @feeds
+		else
+			render xml: @feeds
 		end
 	end
 
 	protected
+
 	# Override in controller classes that should require authentication
 	def secure?
-		false
+		false # override this in specific controllers
 	end
 
 	private
-	def authorize
-		if secure? and session["user_id"].nil?
-			session["return_to"] = "#{request.protocol}#{request.host_with_port}#{request.fullpath}"
-			redirect_to :controller => "login", :action => "login"
-			return false
-		end
-	end
 end

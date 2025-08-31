@@ -1,4 +1,6 @@
 class FeedItemsController < ApplicationController
+	include JwtAuthenticatable
+
 	def mark_as_read
 		update_item(params[:id]) do |item|
 			item.display = false
@@ -19,13 +21,14 @@ class FeedItemsController < ApplicationController
 
 	def favorites
 		@items = FeedItem.joins(:feed)
-					.select('feeds.id, feeds.name, feed_items.*')
-					.where({ 'favorite' => true, 'feeds.user' => session["user_id"] })
-					.order('name ASC')
+										 .select('feeds.id, feeds.name, feed_items.*')
+										 .where({ 'favorite' => true, 'feeds.user' => @logged_in_user })
+										 .order('name ASC')
 
-		respond_to do |format|
-			format.xml
-			format.json { render :json => @items }
+		if request.format.json?
+			render json: @items
+		else
+			render xml: @items
 		end
 	end
 
@@ -37,22 +40,25 @@ class FeedItemsController < ApplicationController
 		@count = feed_item.feed.feed_items.count
 		@id = feed_item.feed.id
 
-		respond_to do |format|
-			format.xml
-			format.json { render :json => { :count => @count, :id => @id } }
+		if request.format.json?
+			render json: { count: @count, id: @id }
+		else
+			render xml: { count: @count, id: @id }
 		end
 	end
 
 	def show
 		@feed_item = FeedItem.find(params[:id])
 
-		respond_to do |format|
-			format.xml
-			format.json { render :json => @feed_item }
+		if request.format.json?
+			render json: @feed_item
+		else
+			render xml: @feed_item
 		end
 	end
 
 	protected
+
 	def secure?
 		true
 	end
