@@ -1,4 +1,4 @@
-class CreateFeedItems < ActiveRecord::Migration
+class CreateFeedItems < ActiveRecord::Migration[6.1]
 	def change
 		create_table :feed_items do |t|
 			t.integer :feed_id

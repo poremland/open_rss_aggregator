@@ -3,9 +3,21 @@ development:
   mail_server_port: 587
   mail_server_enable_tls: true
   mail_domain: "domain.com"
+  mail_user: "user@domain.com"
+  mail_password: "your password"
 
 production:
   mail_server: "your.domain.com"
   mail_server_port: 587
   mail_server_enable_tls: true
   mail_domain: "domain.com"
+  mail_user: "user@domain.com"
+  mail_password: "your password"
+
+test:
+  mail_server: "test.domain.com"
+  mail_server_port: 587
+  mail_server_enable_tls: true
+  mail_domain: "test.com"
+  mail_user: "test@domain.com"
+  mail_password: "test password"

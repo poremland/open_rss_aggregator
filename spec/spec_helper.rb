@@ -1,7 +1,7 @@
 require 'spork'
 
 Spork.prefork do
-	ENV["RAILS_ENV"] ||= 'development'
+	ENV["RAILS_ENV"] ||= 'test'
 
 	if ENV["COVERAGE"]
 		require 'simplecov'
@@ -18,21 +18,37 @@ Spork.prefork do
 
 	require File.expand_path("../../config/environment", __FILE__)
 	require 'rspec/rails'
+  require 'shoulda/matchers'
 
 	module SpecHelper
+    def generate_jwt_token(user)
+      JwtService.encode({ user_id: user.id })
+    end
 	end
 
 	RSpec.configure do |config|
 		config.include SpecHelper
 		config.mock_with :rspec
+    config.include FactoryBot::Syntax::Methods
+    config.include ActiveSupport::Testing::TimeHelpers
 
-		config.before(:each) do
-		end
+    config.before(:suite) do
+      # Ensure the test database schema is loaded
+      ActiveRecord::Migration.maintain_test_schema!
+    end
+
+    Shoulda::Matchers.configure do |shoulda_config|
+      shoulda_config.integrate do |with|
+        with.test_framework :rspec
+        with.library :rails
+      end
+    end
+
 	end
 end
 
 Spork.each_run do
 	load "#{Rails.root}/config/routes.rb"
-	Dir["#{Rails.root}/app/*/*.rb"].each { |f| load f }
+	Dir[Rails.root.join("app", "**", "*.rb")].each { |f| load f }
 	Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
 end

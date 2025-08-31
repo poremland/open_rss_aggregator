@@ -22,16 +22,20 @@ OpenRss::Application.configure do
   # Only use best-standards-support built into browsers
   config.action_dispatch.best_standards_support = :builtin
 
-  # Raise exception on mass assignment protection for Active Record models
-  config.active_record.mass_assignment_sanitizer = :strict
+  config.eager_load = false
 
-  # Log the query plan for queries taking more than this (works
-  # with SQLite, MySQL, and PostgreSQL)
-  config.active_record.auto_explain_threshold_in_seconds = 0.5
-
-  # Do not compress assets
-  config.assets.compress = false
-
-  # Expands the lines which load the assets
-  config.assets.debug = true
+  # ActionMailer Config
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default_url_options = { host: Rails.application.config.app_config['mail_domain'] }
+  config.action_mailer.smtp_settings = {
+    address:              Rails.application.config.app_config['mail_server'],
+    port:                 Rails.application.config.app_config['mail_server_port'],
+    domain:               Rails.application.config.app_config['mail_domain'],
+    user_name:            Rails.application.config.app_config['mail_user'],
+    password:             Rails.application.config.app_config['mail_password'],
+    authentication:       'plain',
+    enable_starttls_auto: Rails.application.config.app_config['mail_server_enable_tls']
+  }
 end

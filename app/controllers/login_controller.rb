@@ -1,49 +1,70 @@
 class LoginController < ApplicationController
-	protect_from_forgery :except => :do_login
+	include JwtAuthenticatable
+	skip_before_action :authenticate_with_jwt, only: [:do_login, :request_otp, :refresh_token]
 
-	def login
-puts "Session: #{session["user_id"]}"
-		if session["user_id"].nil?
-			respond_to do |format|
-				format.html 
-			end
+	def request_otp
+		username = params[:username]
+		otp = SecureRandom.hex(3)
+		user_otp = Otp.new(otp: otp, user_id: username, expires_at: 10.minutes.from_now)
+		user_otp.save!
+
+		OtpMailer.otp_email(username, otp).deliver_now
+
+		if request.format.json?
+			render json: { login: "otp sent" }, status: :ok
 		else
-			redirect_to :controller => "application", :action => "index"
+			render xml: { login: "otp sent" }, status: :ok
 		end
 	end
 
 	def do_login
 		username = params[:username]
-		password = params[:password]
+		otp = params[:otp]
 
-		if username.nil? || password.nil? || username==password
-			respond_to do |format|
-				format.json { render :json => { :login => "failure" } }
-				format.html { redirect_to :action => "login" }
-				format.xml { redirect_to :action => "login" }
+		if username.nil? || otp.nil?
+			if request.format.json?
+				render json: { login: "failure" }, status: :unauthorized
+			else
+				render xml: { login: "failure" }, status: :unauthorized
 			end
 		else
-			success = User.login(username, password)
-			if success
-				session["user_id"] = username
+			user_otp = Otp.where(user_id: username).order(created_at: :desc).first
 
-				respond_to do |format|
-					format.json { render :json => { :login => "success" } }
-					format.html { redirect_to :controller => "application", :action => "index" }
-					format.xml { redirect_to :controller => "application", :action => "index" }
+			if user_otp && user_otp.otp == otp && user_otp.expires_at > Time.now
+				payload = { user_id: username }
+				token = JwtService.encode(payload)
+
+				@logged_in_user = "#{username}"
+				response.headers['Authorization'] = "Bearer #{token}"
+
+				if request.format.json?
+					render json: { login: "success", token: token }, status: :ok
+				else
+					render xml: { login: "success", token: token }, status: :ok
 				end
 			else
-				respond_to do |format|
-					format.json { render :json => { :login => "failure" } }
-					format.html { redirect_to :action => "login" }
-					format.xml { redirect_to :action => "login" }
+				if request.format.json?
+					render json: { login: "failure" }, status: :unauthorized
+				else
+					render xml: { login: "failure" }, status: :unauthorized
 				end
 			end
 		end
 	end
 
+	def refresh_token
+		token = request.headers['Authorization']&.split(' ')&.last
+		if token.present? && JwtService.valid?(token)
+			decoded_token = JwtService.decode(token)
+			new_token = JwtService.encode({ user_id: decoded_token['user_id'] })
+			render json: { token: new_token }
+		else
+			render json: { error: 'Invalid or expired token' }, status: :unauthorized
+		end
+	end
+
 	def do_logout
-		session["user_id"] = nil
-		redirect_to :action => "login"
+		@logged_in_user = nil
+		redirect_to "#{request.protocol}#{request.host_with_port}"
 	end
 end

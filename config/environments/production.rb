@@ -5,23 +5,11 @@ OpenRss::Application.configure do
   config.cache_classes = true
 
   # Full error reports are disabled and caching is turned on
-  config.consider_all_requests_local       = false
+  config.consider_all_requests_local       = true
   config.action_controller.perform_caching = true
 
-  # Disable Rails's static asset server (Apache or nginx will already do this)
-  config.serve_static_assets = false
-
-  # Compress JavaScripts and CSS
-  config.assets.compress = true
-
-  # Don't fallback to assets pipeline if a precompiled asset is missed
-  config.assets.compile = true
-
-  # Generate digests for assets URLs
-  config.assets.digest = true
-
   # See everything in the log (default is :info)
-  # config.log_level = :debug
+  config.log_level = :info
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation can not be found)
@@ -30,7 +18,20 @@ OpenRss::Application.configure do
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
 
-  # Log the query plan for queries taking more than this (works
-  # with SQLite, MySQL, and PostgreSQL)
-  # config.active_record.auto_explain_threshold_in_seconds = 0.5
+  config.eager_load = true
+
+  # ActionMailer Config
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default_url_options = { host: Rails.application.config.app_config['mail_domain'] }
+  config.action_mailer.smtp_settings = {
+    address:              Rails.application.config.app_config['mail_server'],
+    port:                 Rails.application.config.app_config['mail_server_port'],
+    domain:               Rails.application.config.app_config['mail_domain'],
+    user_name:            Rails.application.config.app_config['mail_user'],
+    password:             Rails.application.config.app_config['mail_password'],
+    authentication:       'plain',
+    enable_starttls_auto: Rails.application.config.app_config['mail_server_enable_tls']
+  }
 end
