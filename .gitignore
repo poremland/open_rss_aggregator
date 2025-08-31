@@ -19,8 +19,10 @@
 /log/*.log
 /tmp
 
+
 # Ignore configuration files
 /config/database.yml
 /config/config.yml
 /config/storage.yml
 /config/master.key
+/config/initializers/secret_token.rb
