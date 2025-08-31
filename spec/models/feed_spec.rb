@@ -101,6 +101,38 @@ RSpec.describe Feed, type: :model do
     end
   end
 
+  describe '#get_description' do
+    let(:feed) { FactoryBot.create(:feed) }
+
+    context 'when item has a summary' do
+      it 'returns the item summary' do
+        item = double('Feedjira::Entry', summary: 'This is a summary', content: nil, title: 'This is a title')
+        expect(feed.send(:get_description, item)).to eq('This is a summary')
+      end
+    end
+
+    context 'when item has no summary but has content' do
+      it 'returns the item content' do
+        item = double('Feedjira::Entry', summary: nil, content: 'This is content', title: 'This is a title')
+        expect(feed.send(:get_description, item)).to eq('This is content')
+      end
+    end
+
+    context 'when item has no summary or content but has a title' do
+      it 'returns the item title' do
+        item = double('Feedjira::Entry', summary: nil, content: nil, title: 'This is a title')
+        expect(feed.send(:get_description, item)).to eq('This is a title')
+      end
+    end
+
+    context 'when item has no summary, content, or title' do
+      it 'returns nil' do
+        item = double('Feedjira::Entry', summary: nil, content: nil, title: nil)
+        expect(feed.send(:get_description, item)).to be_nil
+      end
+    end
+  end
+
   describe '#get_hash_key' do
     let(:feed) { FactoryBot.create(:feed) }
     let(:date) { '2025-07-30T14:00:00Z' }
@@ -145,7 +177,8 @@ RSpec.describe Feed, type: :model do
         title: "New Feed Item",
         summary: "Description of new feed item",
         url: "http://example.com/new-item",
-        image: "http://example.com/media.mp4"
+        image: "http://example.com/media.mp4",
+        content: nil
       )
     end
     let(:link) { "http://example.com/new-item" }
@@ -193,8 +226,8 @@ RSpec.describe Feed, type: :model do
   describe '#update_feed_items' do
     let(:feed) { FactoryBot.create(:feed, uri: 'http://example.com/rss') }
     let(:feedjira_feed) { double('Feedjira::Feed') }
-    let(:feedjira_entry1) { double('Feedjira::Entry', title: "Item 1", summary: "Description 1", url: "http://example.com/item1", published: Date.today.to_time, image: "http://example.com/media1.mp3") }
-    let(:feedjira_entry2) { double('Feedjira::Entry', title: "Item 2", summary: "Description 2", url: "http://example.com/item2", published: Time.parse("Wed, 30 Jul 2025 17:00:00 GMT"), image: nil) }
+    let(:feedjira_entry1) { double('Feedjira::Entry', title: "Item 1", summary: "Description 1", url: "http://example.com/item1", published: Date.today.to_time, image: "http://example.com/media1.mp3", content: nil) }
+    let(:feedjira_entry2) { double('Feedjira::Entry', title: "Item 2", summary: "Description 2", url: "http://example.com/item2", published: Time.parse("Wed, 30 Jul 2025 17:00:00 GMT"), image: nil, content: nil) }
 
     before do
       allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
