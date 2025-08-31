@@ -26,3 +26,5 @@
 /config/storage.yml
 /config/master.key
 /config/initializers/secret_token.rb
+/config/credentials
+/config/credentials/*.key
