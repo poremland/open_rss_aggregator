@@ -58,7 +58,7 @@ class Feed < ApplicationRecord
 
 	def create_feed_item(item, link, domain, hash_key, date)
 		title = item.title || ""
-		description = (item.summary.nil? || item.summary.empty?) ? title : item.summary
+		description = get_description(item)
 		media = get_media(item)
 		fi = self.feed_items.new
 		fi.title = title
@@ -69,6 +69,16 @@ class Feed < ApplicationRecord
 		fi.key = hash_key
 		fi.save!
 		fi
+	end
+
+	def get_description(item)
+		description = item.title
+		if(!item.content.nil? && !item.content.empty?)
+			description = item.content
+		elsif(!item.summary.nil? && !item.summary.empty?)
+			description = item.summary
+		end
+		return description
 	end
 
 	def get_media(item)
