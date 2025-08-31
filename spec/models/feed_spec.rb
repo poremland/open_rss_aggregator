@@ -101,6 +101,38 @@ RSpec.describe Feed, type: :model do
     end
   end
 
+  describe '#get_description' do
+    let(:feed) { FactoryBot.create(:feed) }
+
+    context 'when item has a summary' do
+      it 'returns the item summary' do
+        item = double('Feedjira::Entry', summary: 'This is a summary', content: nil, title: 'This is a title')
+        expect(feed.send(:get_description, item)).to eq('This is a summary')
+      end
+    end
+
+    context 'when item has no summary but has content' do
+      it 'returns the item content' do
+        item = double('Feedjira::Entry', summary: nil, content: 'This is content', title: 'This is a title')
+        expect(feed.send(:get_description, item)).to eq('This is content')
+      end
+    end
+
+    context 'when item has no summary or content but has a title' do
+      it 'returns the item title' do
+        item = double('Feedjira::Entry', summary: nil, content: nil, title: 'This is a title')
+        expect(feed.send(:get_description, item)).to eq('This is a title')
+      end
+    end
+
+    context 'when item has no summary, content, or title' do
+      it 'returns nil' do
+        item = double('Feedjira::Entry', summary: nil, content: nil, title: nil)
+        expect(feed.send(:get_description, item)).to be_nil
+      end
+    end
+  end
+
   describe '#get_hash_key' do
     let(:feed) { FactoryBot.create(:feed) }
     let(:date) { '2025-07-30T14:00:00Z' }
@@ -145,7 +177,8 @@ RSpec.describe Feed, type: :model do
         title: "New Feed Item",
         summary: "Description of new feed item",
         url: "http://example.com/new-item",
-        image: "http://example.com/media.mp4"
+        image: "http://example.com/media.mp4",
+        content: nil
       )
     end
     let(:link) { "http://example.com/new-item" }
@@ -193,8 +226,8 @@ RSpec.describe Feed, type: :model do
   describe '#update_feed_items' do
     let(:feed) { FactoryBot.create(:feed, uri: 'http://example.com/rss') }
     let(:feedjira_feed) { double('Feedjira::Feed') }
-    let(:feedjira_entry1) { double('Feedjira::Entry', title: "Item 1", summary: "Description 1", url: "http://example.com/item1", published: Date.today.to_time, image: "http://example.com/media1.mp3") }
-    let(:feedjira_entry2) { double('Feedjira::Entry', title: "Item 2", summary: "Description 2", url: "http://example.com/item2", published: Time.parse("Wed, 30 Jul 2025 17:00:00 GMT"), image: nil) }
+    let(:feedjira_entry1) { double('Feedjira::Entry', title: "Item 1", summary: "Description 1", url: "http://example.com/item1", published: Date.today.to_time, image: "http://example.com/media1.mp3", content: nil) }
+    let(:feedjira_entry2) { double('Feedjira::Entry', title: "Item 2", summary: "Description 2", url: "http://example.com/item2", published: Time.parse("Wed, 30 Jul 2025 17:00:00 GMT"), image: nil, content: nil) }
 
     before do
       allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
@@ -246,7 +279,6 @@ RSpec.describe Feed, type: :model do
         allow(HTTParty).to receive(:get).and_return(httparty_response)
         allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
         allow(feedjira_feed).to receive(:entries).and_return([feedjira_entry1])
-        allow(FeedItem).to receive(:where).and_return(double(count: 0))
       end
 
       it 'creates new feed items' do
@@ -266,6 +298,50 @@ RSpec.describe Feed, type: :model do
       it 'does not create feed items and logs an error' do
         expect { feed.update_feed_items }.not_to change(FeedItem, :count)
         expect(feed).to have_received(:puts).with(/Error updating feed items for feed: .*Failed to open connection/)
+      end
+    end
+
+    context 'when feed items have relative URLs' do
+      let(:feed_with_relative_uri) { FactoryBot.create(:feed, uri: 'http://example.com/blog/feed.xml') }
+      let(:relative_entry) { double('Feedjira::Entry', title: "Relative Item", summary: "Relative Description", url: "/blog/relative-item", published: Date.today.to_time, image: nil, content: nil) }
+      let(:absolute_entry) { double('Feedjira::Entry', title: "Absolute Item", summary: "Absolute Description", url: "http://external.com/absolute-item", published: Date.today.to_time, image: nil, content: nil) }
+
+      before do
+        FeedItem.delete_all # Clean up before each test
+        allow(HTTParty).to receive(:get).and_return(double(body: '<xml>'))
+        allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
+        allow(feedjira_feed).to receive(:entries).and_return([relative_entry, absolute_entry])
+        allow(FeedItem).to receive(:where).and_call_original # Unmock where for these tests
+      end
+
+      it 'resolves relative URLs to absolute URLs' do
+        feed_with_relative_uri.update_feed_items
+        new_feed_item = FeedItem.find_by(title: "Relative Item")
+        expect(new_feed_item.link).to eq("http://example.com/blog/relative-item")
+      end
+
+      it 'does not change absolute URLs' do
+        feed_with_relative_uri.update_feed_items
+        new_feed_item = FeedItem.find_by(title: "Absolute Item")
+        expect(new_feed_item.link).to eq("http://external.com/absolute-item")
+      end
+
+      context 'when a relative URL is invalid' do
+        let(:invalid_relative_entry) { double('Feedjira::Entry', title: "Invalid Relative Item", summary: "Invalid Description", url: "://invalid-item", published: Date.today.to_time, image: nil, content: nil) }
+
+        before do
+          FeedItem.delete_all # Clean up before each test
+          allow(feedjira_feed).to receive(:entries).and_return([invalid_relative_entry])
+          allow(feed_with_relative_uri).to receive(:puts) # Suppress puts output during test
+          allow(FeedItem).to receive(:where).and_call_original # Unmock where for these tests
+        end
+
+        it 'falls back to the original invalid URL and logs a warning' do
+          feed_with_relative_uri.update_feed_items
+          new_feed_item = FeedItem.find_by(title: "Invalid Relative Item")
+          expect(new_feed_item.link).to eq("://invalid-item")
+          expect(feed_with_relative_uri).to have_received(:puts).with(/Warning: Could not resolve relative URL ':\/\/invalid-item' with base 'http:\/\/example.com\/blog\/feed.xml'. Error: bad URI/)
+        end
       end
     end
   end
