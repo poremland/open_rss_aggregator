@@ -326,6 +326,34 @@ RSpec.describe Feed, type: :model do
         expect(new_feed_item.link).to eq("http://external.com/absolute-item")
       end
 
+      context 'when atom feed has xhtml content' do
+        let(:feed_with_xhtml) { FactoryBot.create(:feed, uri: 'http://example.com/atom-feed.xml') }
+        let(:xhtml_entry) {
+          double('Feedjira::Entry',
+            title: "XHTML Content",
+            summary: "Summary for XHTML content",
+            url: "http://example.com/xhtml-item",
+            published: Date.today.to_time,
+            image: nil,
+            content: "<div><p>This is some XHTML content</p></div>"
+          )
+        }
+
+        before do
+          FeedItem.delete_all
+          allow(HTTParty).to receive(:get).and_return(double(body: '<xml>'))
+          allow(Feedjira).to receive(:parse).and_return(feedjira_feed)
+          allow(feedjira_feed).to receive(:entries).and_return([xhtml_entry])
+          allow(FeedItem).to receive(:where).and_call_original
+        end
+
+        it 'passes the html from the content tag to the feed item' do
+          feed_with_xhtml.update_feed_items
+          new_feed_item = FeedItem.find_by(title: "XHTML Content")
+          expect(new_feed_item.description).to eq("<div><p>This is some XHTML content</p></div>")
+        end
+      end
+
       context 'when a relative URL is invalid' do
         let(:invalid_relative_entry) { double('Feedjira::Entry', title: "Invalid Relative Item", summary: "Invalid Description", url: "://invalid-item", published: Date.today.to_time, image: nil, content: nil) }
 
