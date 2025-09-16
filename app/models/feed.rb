@@ -22,6 +22,7 @@ class Feed < ApplicationRecord
 	def update_feed_items
 		begin
 			xml = HTTParty.get(self.uri).body
+			Feedjira::Parser::Atom.preprocess_xml = true
 			rss = Feedjira.parse(xml)
 		rescue => e
 			puts "Error updating feed items for feed: #{self.uri}. #{e.message}"
