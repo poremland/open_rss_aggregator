@@ -22,7 +22,7 @@ class LoginController < ApplicationController
 		domain = username.split("@").last
 		domain_allow_list = Rails.configuration.app_config["domain_allow_list"].split(",")
 		if !domain_allow_list.include?(domain)
-			render json: { login: "failure" }, status: :unauthorized
+			render json: { login: "failure", message: "Email domain is not on the allow list." }, status: :unauthorized
 			return
 		end
 		otp = SecureRandom.hex(3)

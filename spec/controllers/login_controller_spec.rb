@@ -37,6 +37,8 @@ describe LoginController, type: :controller do
       it 'returns an unauthorized response' do
         post :request_otp, params: { username: 'test@disallowed.com' }
         expect(response).to be_unauthorized
+        json = JSON.parse(response.body)
+        expect(json['message']).to eq('Email domain is not on the allow list.')
       end
     end
   end
