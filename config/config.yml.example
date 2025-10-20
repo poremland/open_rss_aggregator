@@ -23,4 +23,4 @@ test:
   mail_domain: "test.com"
   mail_user: "test@domain.com"
   mail_password: "test password"
-  cors_origins: 'http://localhost:3000'
+  cors_origins: 'http://test.host'
