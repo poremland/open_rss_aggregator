@@ -19,6 +19,12 @@ class LoginController < ApplicationController
 
 	def request_otp
 		username = params[:username]
+		domain = username.split("@").last
+		domain_allow_list = Rails.configuration.app_config["domain_allow_list"].split(",")
+		if !domain_allow_list.include?(domain)
+			render json: { login: "failure" }, status: :unauthorized
+			return
+		end
 		otp = SecureRandom.hex(3)
 		user_otp = Otp.new(otp: otp, user_id: username, expires_at: 10.minutes.from_now)
 		user_otp.save!
