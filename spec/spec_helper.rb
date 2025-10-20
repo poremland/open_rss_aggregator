@@ -3,9 +3,6 @@ require 'spork'
 Spork.prefork do
 	ENV["RAILS_ENV"] ||= 'test'
 
-  # Define APP_CONFIG for the test environment before the application loads
-  APP_CONFIG = { 'test' => { 'cors_origins' => 'http://test.host' } }
-
 	if ENV["COVERAGE"]
 		require 'simplecov'
 		require 'simplecov-rcov'
