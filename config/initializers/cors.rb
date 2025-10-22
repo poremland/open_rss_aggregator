@@ -1,6 +1,6 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins APP_CONFIG['cors_origins']&.split(',') || []
+    origins Rails.configuration.app_config['cors_origins']&.split(',') || []
 
     resource '*',
       headers: :any,

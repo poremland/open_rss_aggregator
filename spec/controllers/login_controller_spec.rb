@@ -2,26 +2,49 @@ require 'spec_helper'
 
 describe LoginController, type: :controller do
   describe 'POST #request_otp' do
-    it 'creates a new OTP' do
-      expect {
-        post :request_otp, params: { username: 'test@example.com' }
-      }.to change(Otp, :count).by(1)
+    context 'when the domain is in the allow list' do
+      it 'creates a new OTP' do
+        expect {
+          post :request_otp, params: { username: 'test@test.host' }
+        }.to change(Otp, :count).by(1)
+      end
+
+      it 'sends an email' do
+        expect {
+          post :request_otp, params: { username: 'test@test.host' }
+        }.to change { ActionMailer::Base.deliveries.count }.by(1)
+      end
+
+      it 'returns a success response' do
+        post :request_otp, params: { username: 'test@test.host' }
+        expect(response).to be_successful
+      end
     end
 
-    it 'sends an email' do
-      expect {
-        post :request_otp, params: { username: 'test@example.com' }
-      }.to change { ActionMailer::Base.deliveries.count }.by(1)
-    end
+    context 'when the domain is not in the allow list' do
+      it 'does not create a new OTP' do
+        expect {
+          post :request_otp, params: { username: 'test@disallowed.com' }
+        }.to_not change(Otp, :count)
+      end
 
-    it 'returns a success response' do
-      post :request_otp, params: { username: 'test@example.com' }
-      expect(response).to be_successful
+      it 'does not send an email' do
+        expect {
+          post :request_otp, params: { username: 'test@disallowed.com' }
+        }.to_not change { ActionMailer::Base.deliveries.count }
+      end
+
+      it 'returns an unauthorized response' do
+        post :request_otp, params: { username: 'test@disallowed.com' }
+        expect(response).to be_unauthorized
+        json = JSON.parse(response.body)
+        expect(json['message']).to eq('Email domain is not on the allow list.')
+      end
     end
   end
 
   describe 'POST #do_login' do
-    let(:user) { 'test@example.com' }
+    let(:user) { 'test@test.host' }
     let(:otp) { '123456' }
 
     context 'with a valid OTP' do
