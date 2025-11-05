@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe "CORS", type: :request do
-  let(:origin) { 'http://test.host' }
+  let(:origin) { Rails.application.config.app_config['cors_origins'] }
 
   it "sets the Access-Control-Allow-Origin header for allowed origins" do
     get '/', headers: { 'Origin' => origin }

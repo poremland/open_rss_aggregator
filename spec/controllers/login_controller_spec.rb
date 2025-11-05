@@ -2,21 +2,25 @@ require 'spec_helper'
 
 describe LoginController, type: :controller do
   describe 'POST #request_otp' do
+    let(:allowed_domain) { Rails.application.config.app_config['domain_allow_list'] }
+    let(:username) { "test@#{allowed_domain}" }
+    let(:allowed_domain) { Rails.application.config.app_config['domain_allow_list'] }
+    let(:username) { "test@#{allowed_domain}" }
     context 'when the domain is in the allow list' do
       it 'creates a new OTP' do
         expect {
-          post :request_otp, params: { username: 'test@test.host' }
+          post :request_otp, params: { username: username }
         }.to change(Otp, :count).by(1)
       end
 
       it 'sends an email' do
         expect {
-          post :request_otp, params: { username: 'test@test.host' }
+          post :request_otp, params: { username: username }
         }.to change { ActionMailer::Base.deliveries.count }.by(1)
       end
 
       it 'returns a success response' do
-        post :request_otp, params: { username: 'test@test.host' }
+        post :request_otp, params: { username: username }
         expect(response).to be_successful
       end
     end
@@ -44,7 +48,9 @@ describe LoginController, type: :controller do
   end
 
   describe 'POST #do_login' do
-    let(:user) { 'test@test.host' }
+    let(:allowed_domain) { Rails.application.config.app_config['domain_allow_list'] }
+    let(:username) { "test@#{allowed_domain}" }
+    let(:user) { username }
     let(:otp) { '123456' }
 
     context 'with a valid OTP' do
