@@ -18,6 +18,6 @@ class ApplicationMailer < ActionMailer::Base
     Rails.application.config.app_config
   end
 
-  default from: self.app_config['mail_user']
+  default from: self.app_config['mail_from']
   layout 'mailer'
 end

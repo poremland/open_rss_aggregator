@@ -28,3 +28,9 @@
 /config/initializers/secret_token.rb
 /config/credentials
 /config/credentials/*.key
+
+# Ignore Rails temp files
+.rake*
+
+# Ignore certs
+*.pem

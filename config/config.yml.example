@@ -4,7 +4,9 @@ development:
   mail_server_enable_tls: true
   mail_domain: "domain.com"
   mail_user: "user@domain.com"
+  mail_from: "user@domain.com"
   mail_password: "your password"
+  use_ssl: false;							# set to true if you're using SSL via 465
   cors_origins: 'http://localhost:3000'
   domain_allow_list: 'your.domain.com'
 
@@ -14,7 +16,9 @@ production:
   mail_server_enable_tls: true
   mail_domain: "domain.com"
   mail_user: "user@domain.com"
+  mail_from: "user@domain.com"
   mail_password: "your password"
+  use_ssl: false;							# set to true if you're using SSL via 465
   cors_origins: 'http://localhost:3000'
   domain_allow_list: 'your.domain.com'
 
@@ -24,6 +28,8 @@ test:
   mail_server_enable_tls: true
   mail_domain: "test.com"
   mail_user: "test@domain.com"
+  mail_from: "user@domain.com"
   mail_password: "test password"
+  use_ssl: false;							# set to true if you're using SSL via 465
   cors_origins: 'http://test.host'
   domain_allow_list: 'test.host'

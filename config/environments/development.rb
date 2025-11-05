@@ -36,6 +36,7 @@ OpenRss::Application.configure do
     user_name:            Rails.application.config.app_config['mail_user'],
     password:             Rails.application.config.app_config['mail_password'],
     authentication:       'plain',
+    ssl:                  Rails.application.config.app_config['use_ssl'],
     enable_starttls_auto: Rails.application.config.app_config['mail_server_enable_tls']
   }
 end
