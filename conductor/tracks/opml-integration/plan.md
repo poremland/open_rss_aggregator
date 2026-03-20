@@ -18,5 +18,5 @@
 ## Phase 4: API Endpoints
 - [x] **Task 5: Export API Endpoint**
   - Add `GET /feeds/export` to `FeedsController`.
-- [ ] **Task 6: Import API Endpoint**
+- [x] **Task 6: Import API Endpoint**
   - Add `POST /feeds/import` to `FeedsController`.

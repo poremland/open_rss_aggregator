@@ -49,6 +49,22 @@ class FeedsController < ApplicationController
 			filename: "subscriptions.opml", 
 			disposition: 'attachment'
 	end
+
+	def import
+		if params[:file].present?
+			xml_content = params[:file].read
+			feeds = OpmlService.import(xml_content, @logged_in_user)
+			
+			if feeds.any?
+				ImportFeedsJob.perform_later(feeds, @logged_in_user)
+				render json: { message: "Import started", count: feeds.count }, status: :accepted
+			else
+				render json: { error: "No valid feeds found in OPML" }, status: :unprocessable_entity
+			end
+		else
+			render json: { error: "No file provided" }, status: :bad_request
+		end
+	end
 	def get_json_tree(feeds)
 		feeds.collect { |feed|
 			{
