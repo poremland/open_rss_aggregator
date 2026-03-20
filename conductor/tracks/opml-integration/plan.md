@@ -6,7 +6,7 @@
   - Update `Feed` model and permitted parameters.
 
 ## Phase 2: Backend Logic (Service Layer)
-- [ ] **Task 2: OPML Export Service**
+- [x] **Task 2: OPML Export Service**
   - Implement `OpmlService.export(user_id)` using Nokogiri.
 - [ ] **Task 3: OPML Import & Parsing**
   - Implement `OpmlService.import(xml_content, user_id)`.
