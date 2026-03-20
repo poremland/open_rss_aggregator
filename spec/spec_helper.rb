@@ -27,11 +27,11 @@ Spork.prefork do
 	end
 
 	RSpec.configure do |config|
-		config.include SpecHelper
-		config.mock_with :rspec
-    config.include FactoryBot::Syntax::Methods
-    config.include ActiveSupport::Testing::TimeHelpers
-
+	        config.include SpecHelper
+	        config.mock_with :rspec
+	config.include FactoryBot::Syntax::Methods
+	config.include ActiveSupport::Testing::TimeHelpers
+	config.use_transactional_fixtures = true
     config.before(:suite) do
       # Ensure the test database schema is loaded
       ActiveRecord::Migration.maintain_test_schema!

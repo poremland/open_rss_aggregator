@@ -59,4 +59,40 @@ class OpmlService
     
     builder.to_xml
   end
+
+  def self.import(xml_content, user_id)
+    doc = Nokogiri::XML(xml_content)
+    feeds = []
+    
+    # Process the body of the OPML
+    body = doc.at_xpath('/opml/body')
+    return [] unless body
+    
+    process_outline(body, nil, feeds)
+    feeds
+  end
+
+  private
+
+  def self.process_outline(element, category, feeds)
+    element.xpath('./outline').each do |outline|
+      xml_url = outline['xmlUrl']
+      
+      if xml_url.present?
+        # This is a feed entry
+        feeds << {
+          uri: xml_url,
+          name: outline['title'] || outline['text'] || xml_url,
+          category: category
+        }
+      else
+        # This might be a category folder
+        # We recursively process nested outlines, passing the title as the category
+        # Standards often use 'text' for the display name, but 'title' is also common.
+        # We prioritize 'text' as it's more specific to the label in many readers.
+        sub_category = outline['text'] || outline['title']
+        process_outline(outline, sub_category, feeds)
+      end
+    end
+  end
 end

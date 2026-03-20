@@ -8,7 +8,7 @@
 ## Phase 2: Backend Logic (Service Layer)
 - [x] **Task 2: OPML Export Service**
   - Implement `OpmlService.export(user_id)` using Nokogiri.
-- [ ] **Task 3: OPML Import & Parsing**
+- [x] **Task 3: OPML Import & Parsing**
   - Implement `OpmlService.import(xml_content, user_id)`.
 
 ## Phase 3: Asynchronous Data Ingestion
