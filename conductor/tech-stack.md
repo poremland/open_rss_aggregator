@@ -4,5 +4,6 @@
 - **Database:** MySQL (Production) / SQLite (Development)
 - **Feed Parsing:** Feedjira, Nokogiri
 - **HTTP Client:** HTTParty
+- **Background Jobs:** ActiveJob (Async)
 - **Authentication:** JWT
 - **Testing:** RSpec
