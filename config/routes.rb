@@ -14,7 +14,9 @@ OpenRss::Application.routes.draw do
 
 	get "feeds/all"
 	get "feeds/tree"
+	get "feeds/export"
 	match "feeds/sync/:id" => 'feeds#sync', :via => :get
+
 	match "feeds/unread_feed_items/:id" => 'feeds#unread_feed_items', :via => :get
 	match "feeds/remove/:id" => 'feeds#remove', :via => :get
 	match "feeds/mark_items_as_read/:id" => 'feeds#mark_items_as_read', :via => :post

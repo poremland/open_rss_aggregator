@@ -16,7 +16,7 @@
   - Create `ImportFeedsJob` to process imported feeds.
 
 ## Phase 4: API Endpoints
-- [ ] **Task 5: Export API Endpoint**
+- [x] **Task 5: Export API Endpoint**
   - Add `GET /feeds/export` to `FeedsController`.
 - [ ] **Task 6: Import API Endpoint**
   - Add `POST /feeds/import` to `FeedsController`.

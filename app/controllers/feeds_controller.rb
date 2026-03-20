@@ -31,10 +31,10 @@ class FeedsController < ApplicationController
 
 	def tree
 		@feeds = Feed.joins(:feed_items)
-								 .select('feeds.id as id, feeds.name as name, feeds.uri as uri, count(feed_items.id) as count')
-								 .group('feeds.id')
-								 .where({ 'feed_items.display' => true, 'user' => @logged_in_user })
-								 .order('name ASC')
+	.select('feeds.id as id, feeds.name as name, feeds.uri as uri, count(feed_items.id) as count')
+	.group('feeds.id')
+	.where({ 'feed_items.display' => true, 'user' => @logged_in_user })
+	.order('name ASC')
 		if request.format.json?
 			render json: get_json_tree(@feeds)
 		else
@@ -42,6 +42,13 @@ class FeedsController < ApplicationController
 		end
 	end
 
+	def export
+		@opml = OpmlService.export(@logged_in_user)
+		send_data @opml, 
+			type: 'text/x-opml', 
+			filename: "subscriptions.opml", 
+			disposition: 'attachment'
+	end
 	def get_json_tree(feeds)
 		feeds.collect { |feed|
 			{
