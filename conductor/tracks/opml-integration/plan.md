@@ -12,7 +12,7 @@
   - Implement `OpmlService.import(xml_content, user_id)`.
 
 ## Phase 3: Asynchronous Data Ingestion
-- [ ] **Task 4: Background Feed Ingestion Job**
+- [x] **Task 4: Background Feed Ingestion Job**
   - Create `ImportFeedsJob` to process imported feeds.
 
 ## Phase 4: API Endpoints
