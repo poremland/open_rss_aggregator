@@ -104,7 +104,7 @@ class FeedsController < ApplicationController
 	end
 
 	def create
-		@feed = Feed.new(params.require(:feed).permit(:uri, :name, :user))
+		@feed = Feed.new(params.require(:feed).permit(:uri, :name, :user, :category))
 		if @feed.save
 			@feed.update_feed_items
 			render json: @feed, status: :created, location: @feed
@@ -115,7 +115,7 @@ class FeedsController < ApplicationController
 
 	def update
 		@feed = Feed.find(params[:id])
-		if @feed.update(params.require(:feed).permit(:uri, :name, :user))
+		if @feed.update(params.require(:feed).permit(:uri, :name, :user, :category))
 			render json: @feed
 		else
 			render json: @feed.errors, status: :unprocessable_entity
