@@ -1,0 +1,7 @@
+<opml version="2.0">
+  <body>
+    <outline text="Tech" title="Tech">
+      <outline text="Feed 1" xmlUrl="http://feed1.com" />
+    </outline>
+  </body>
+</opml>
