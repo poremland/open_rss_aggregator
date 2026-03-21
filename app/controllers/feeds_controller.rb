@@ -44,9 +44,9 @@ class FeedsController < ApplicationController
 
 	def export
 		@opml = OpmlService.export(@logged_in_user)
-		send_data @opml, 
-			type: 'text/x-opml', 
-			filename: "subscriptions.opml", 
+		send_data @opml,
+			type: 'text/x-opml',
+			filename: "subscriptions.opml",
 			disposition: 'attachment'
 	end
 
@@ -54,7 +54,7 @@ class FeedsController < ApplicationController
 		if params[:file].present?
 			xml_content = params[:file].read
 			feeds = OpmlService.import(xml_content, @logged_in_user)
-			
+
 			if feeds.any?
 				ImportFeedsJob.perform_later(feeds, @logged_in_user)
 				render json: { message: "Import started", count: feeds.count }, status: :accepted

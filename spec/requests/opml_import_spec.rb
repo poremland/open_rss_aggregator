@@ -13,7 +13,7 @@ RSpec.describe "OPML Import", type: :request do
   before do
     allow(JwtService).to receive(:decode).with(token).and_return({ 'user_id' => user_id })
     allow(JwtService).to receive(:valid?).with(token).and_return(true)
-    
+
     # Create the fixture file
     FileUtils.mkdir_p(Rails.root.join('spec', 'fixtures'))
     File.write(Rails.root.join('spec', 'fixtures', 'test.opml'), <<~XML)
@@ -30,7 +30,7 @@ RSpec.describe "OPML Import", type: :request do
   end
 
   it "accepts an OPML file and queues the import job" do
-    post "/feeds/import", 
+    post "/feeds/import",
       params: { file: opml_file },
       headers: { 'Authorization' => "Bearer #{token}" }
 
@@ -43,7 +43,7 @@ RSpec.describe "OPML Import", type: :request do
   end
 
   it "returns error if no file provided" do
-    post "/feeds/import", 
+    post "/feeds/import",
       params: {},
       headers: { 'Authorization' => "Bearer #{token}" }
 

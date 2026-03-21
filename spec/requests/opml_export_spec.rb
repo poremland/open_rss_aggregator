@@ -7,7 +7,7 @@ RSpec.describe "OPML Export", type: :request do
   before do
     allow(JwtService).to receive(:decode).with(token).and_return({ 'user_id' => user_id })
     allow(JwtService).to receive(:valid?).with(token).and_return(true)
-    
+
     # Create some feeds for the user
     Feed.destroy_all
     FactoryBot.create(:feed, user: user_id, name: "Tech Feed", uri: "http://tech.com", category: "Tech")
@@ -20,7 +20,7 @@ RSpec.describe "OPML Export", type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.content_type).to eq('text/x-opml')
     expect(response.headers['Content-Disposition']).to include('attachment; filename="subscriptions.opml"')
-    
+
     doc = Nokogiri::XML(response.body)
     expect(doc.xpath('//outline[@type="rss"]').count).to eq(2)
     expect(doc.at_xpath('//outline[@title="Tech Feed"]')).not_to be_nil

@@ -14,16 +14,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 class Feed < ApplicationRecord
-        has_many :feed_items,
-                :inverse_of => :feed,
-                :foreign_key => :feed_id, 
-                :dependent => :destroy
+	has_many :feed_items,
+		:inverse_of => :feed,
+		:foreign_key => :feed_id,
+		:dependent => :destroy
 
-        validates :uri, presence: true
-        validates :name, presence: true
-        validates :user, presence: true
+	validates :uri, presence: true
+	validates :name, presence: true
+	validates :user, presence: true
 
-        def update_feed_items
+	def update_feed_items
 
 		begin
 			xml = HTTParty.get(self.uri).body
@@ -62,14 +62,14 @@ class Feed < ApplicationRecord
 				end
 
 				if(date && date != "" && Date.parse(date) > (Date.today - 30))
-                                  begin
+				  begin
 					self.feed_items << create_feed_item(item, resolved_url, resolved_url, hash_key, date)
-                                  rescue => e
-                                    puts "Error adding feed item for feed #{self.id} error message: #{e.message}"
-                                  end
+				  rescue => e
+				    puts "Error adding feed item for feed #{self.id} error message: #{e.message}"
+				  end
 				end
 			rescue => e
-                          puts "Error adding feed item feed id: #{self.id} error message: #{e.message}"
+			  puts "Error adding feed item feed id: #{self.id} error message: #{e.message}"
 				return
 			end
 		end
@@ -112,7 +112,7 @@ class Feed < ApplicationRecord
 	end
 
 	def get_hash_key(item, date)
-		title = "" 
+		title = ""
 		link = ""
 		begin
 			title = (item.title.nil? || item.title.empty?) ? item.summary[0,25] : item.title

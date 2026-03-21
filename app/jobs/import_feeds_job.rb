@@ -21,12 +21,12 @@ class ImportFeedsJob < ApplicationJob
       feed_data = feed_data.with_indifferent_access
       # Skip if user already has an identical feed (URI, Name, and Category)
       next if Feed.exists?(
-        uri: feed_data[:uri], 
-        name: feed_data[:name], 
-        category: feed_data[:category], 
+        uri: feed_data[:uri],
+        name: feed_data[:name],
+        category: feed_data[:category],
         user: user_id
       )
-      
+
       begin
         feed = Feed.new(
           uri: feed_data[:uri],
@@ -34,7 +34,7 @@ class ImportFeedsJob < ApplicationJob
           category: feed_data[:category],
           user: user_id
         )
-        
+
         if feed.save
           # Fetch initial items
           feed.update_feed_items

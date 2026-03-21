@@ -1,6 +1,6 @@
 OpenRss::Application.routes.draw do
-	  post "api/login", to: 'login#do_login', defaults: { format: :json }
-  post "api/request_otp", to: 'login#request_otp', defaults: { format: :json }
+	post "api/login", to: 'login#do_login', defaults: { format: :json }
+	post "api/request_otp", to: 'login#request_otp', defaults: { format: :json }
 
 	post "api/refresh_token", to: 'login#refresh_token', defaults: { format: :json }
 	post "login/do_login"
