@@ -3,6 +3,15 @@ require 'spec_helper'
 RSpec.describe Feed, type: :model do
   it { should have_many(:feed_items).inverse_of(:feed).with_foreign_key(:feed_id).dependent(:destroy) }
 
+  it "is valid with a category" do
+    feed = Feed.new(category: "Tech", uri: "http://example.com", name: "Test", user: "user")
+    expect(feed.category).to eq("Tech")
+  end
+
+  it { should validate_presence_of(:uri) }
+  it { should validate_presence_of(:name) }
+  it { should validate_presence_of(:user) }
+
   describe '#get_date' do
     let(:feed) { FactoryBot.create(:feed) }
 

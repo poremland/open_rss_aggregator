@@ -31,10 +31,10 @@ class FeedsController < ApplicationController
 
 	def tree
 		@feeds = Feed.joins(:feed_items)
-								 .select('feeds.id as id, feeds.name as name, feeds.uri as uri, count(feed_items.id) as count')
-								 .group('feeds.id')
-								 .where({ 'feed_items.display' => true, 'user' => @logged_in_user })
-								 .order('name ASC')
+	.select('feeds.id as id, feeds.name as name, feeds.uri as uri, count(feed_items.id) as count')
+	.group('feeds.id')
+	.where({ 'feed_items.display' => true, 'user' => @logged_in_user })
+	.order('name ASC')
 		if request.format.json?
 			render json: get_json_tree(@feeds)
 		else
@@ -42,6 +42,29 @@ class FeedsController < ApplicationController
 		end
 	end
 
+	def export
+		@opml = OpmlService.export(@logged_in_user)
+		send_data @opml,
+			type: 'text/x-opml',
+			filename: "subscriptions.opml",
+			disposition: 'attachment'
+	end
+
+	def import
+		if params[:file].present?
+			xml_content = params[:file].read
+			feeds = OpmlService.import(xml_content, @logged_in_user)
+
+			if feeds.any?
+				ImportFeedsJob.perform_later(feeds, @logged_in_user)
+				render json: { message: "Import started", count: feeds.count }, status: :accepted
+			else
+				render json: { error: "No valid feeds found in OPML" }, status: :unprocessable_entity
+			end
+		else
+			render json: { error: "No file provided" }, status: :bad_request
+		end
+	end
 	def get_json_tree(feeds)
 		feeds.collect { |feed|
 			{
@@ -104,7 +127,7 @@ class FeedsController < ApplicationController
 	end
 
 	def create
-		@feed = Feed.new(params.require(:feed).permit(:uri, :name, :user))
+		@feed = Feed.new(params.require(:feed).permit(:uri, :name, :user, :category))
 		if @feed.save
 			@feed.update_feed_items
 			render json: @feed, status: :created, location: @feed
@@ -115,7 +138,7 @@ class FeedsController < ApplicationController
 
 	def update
 		@feed = Feed.find(params[:id])
-		if @feed.update(params.require(:feed).permit(:uri, :name, :user))
+		if @feed.update(params.require(:feed).permit(:uri, :name, :user, :category))
 			render json: @feed
 		else
 			render json: @feed.errors, status: :unprocessable_entity

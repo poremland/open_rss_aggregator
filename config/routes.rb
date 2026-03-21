@@ -1,6 +1,6 @@
 OpenRss::Application.routes.draw do
-	  post "api/login", to: 'login#do_login', defaults: { format: :json }
-  post "api/request_otp", to: 'login#request_otp', defaults: { format: :json }
+	post "api/login", to: 'login#do_login', defaults: { format: :json }
+	post "api/request_otp", to: 'login#request_otp', defaults: { format: :json }
 
 	post "api/refresh_token", to: 'login#refresh_token', defaults: { format: :json }
 	post "login/do_login"
@@ -14,6 +14,8 @@ OpenRss::Application.routes.draw do
 
 	get "feeds/all"
 	get "feeds/tree"
+	get "feeds/export"
+	post "feeds/import"
 	match "feeds/sync/:id" => 'feeds#sync', :via => :get
 	match "feeds/unread_feed_items/:id" => 'feeds#unread_feed_items', :via => :get
 	match "feeds/remove/:id" => 'feeds#remove', :via => :get
