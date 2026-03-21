@@ -27,12 +27,24 @@ RSpec.describe ImportFeedsJob, type: :job do
       expect(feed2.category).to be_nil
     end
     
-    it 'skips existing feeds for the same user' do
-      FactoryBot.create(:feed, uri: 'http://feed1.com', user: user_id)
+    it 'skips existing feeds for the same user (same URI, Name, and Category)' do
+      FactoryBot.create(:feed, uri: 'http://feed1.com', name: 'Feed 1', category: 'Tech', user: user_id)
       
       expect {
         ImportFeedsJob.perform_now(feeds_data, user_id)
       }.to change(Feed, :count).by(1) # Only Feed 2 is new
+    end
+
+    it 'imports the same URI if the name or category is different' do
+      # Same URI, different name
+      FactoryBot.create(:feed, uri: 'http://feed1.com', name: 'Different Name', user: user_id)
+      
+      # Same URI, same name, different category
+      FactoryBot.create(:feed, uri: 'http://feed1.com', name: 'Feed 1', category: 'News', user: user_id)
+      
+      expect {
+        ImportFeedsJob.perform_now(feeds_data, user_id)
+      }.to change(Feed, :count).by(2) # Both Feed 1 and Feed 2 are new
     end
     
     it 'allows the same feed for different users' do

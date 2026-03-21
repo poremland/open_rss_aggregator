@@ -18,14 +18,20 @@ class ImportFeedsJob < ApplicationJob
 
   def perform(feeds, user_id)
     feeds.each do |feed_data|
-      # Skip if user already has this feed
-      next if Feed.exists?(uri: feed_data['uri'], user: user_id)
+      feed_data = feed_data.with_indifferent_access
+      # Skip if user already has an identical feed (URI, Name, and Category)
+      next if Feed.exists?(
+        uri: feed_data[:uri], 
+        name: feed_data[:name], 
+        category: feed_data[:category], 
+        user: user_id
+      )
       
       begin
         feed = Feed.new(
-          uri: feed_data['uri'],
-          name: feed_data['name'],
-          category: feed_data['category'],
+          uri: feed_data[:uri],
+          name: feed_data[:name],
+          category: feed_data[:category],
           user: user_id
         )
         

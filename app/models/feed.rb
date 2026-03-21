@@ -14,12 +14,17 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 class Feed < ApplicationRecord
-	has_many :feed_items,
-		:inverse_of => :feed,
-		:foreign_key => :feed_id, 
-		:dependent => :destroy
+        has_many :feed_items,
+                :inverse_of => :feed,
+                :foreign_key => :feed_id, 
+                :dependent => :destroy
 
-	def update_feed_items
+        validates :uri, presence: true
+        validates :name, presence: true
+        validates :user, presence: true
+
+        def update_feed_items
+
 		begin
 			xml = HTTParty.get(self.uri).body
 			Feedjira::Parser::Atom.preprocess_xml = true

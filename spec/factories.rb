@@ -2,6 +2,7 @@ FactoryBot.define do
   factory :feed do
     uri { "http://example.com/feed" }
     name { "Example Feed" }
+    user { "test_user" }
   end
 
   factory :feed_item do
