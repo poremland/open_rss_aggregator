@@ -1,0 +1,40 @@
+name: Ruby on Rails CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run RSpec Tests
+    runs-on: ubuntu-latest
+
+    env:
+      RAILS_ENV: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4.4'
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      - name: Set up configuration files
+        run: |
+          cp config/database.yml.example config/database.yml
+          cp config/config.yml.example config/config.yml
+          cp config/storage.yml.example config/storage.yml
+          cp config/initializers/secret_token.rb.example config/initializers/secret_token.rb
+
+      - name: Create database and run migrations
+        run: |
+          bundle exec rails db:prepare
+
+      - name: Run RSpec tests
+        run: |
+          bundle exec rspec
